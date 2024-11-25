@@ -83,14 +83,6 @@ const ApiOptions = ({ showModelOptions, apiErrorMessage, modelIdErrorMessage }: 
 	}, [])
 	useEvent("message", handleMessage)
 
-	/*
-	VSCodeDropdown has an open bug where dynamically rendered options don't auto select the provided value prop. You can see this for yourself by comparing  it with normal select/option elements, which work as expected.
-	https://github.com/microsoft/vscode-webview-ui-toolkit/issues/433
-
-	In our case, when the user switches between providers, we recalculate the selectedModelId depending on the provider, the default model for that provider, and a modelId that the user may have selected. Unfortunately, the VSCodeDropdown component wouldn't select this calculated value, and would default to the first "Select a model..." option instead, which makes it seem like the model was cleared out when it wasn't. 
-
-	As a workaround, we create separate instances of the dropdown for each provider, and then conditionally render the one that matches the current provider.
-	*/
 	const createDropdown = (models: Record<string, ModelInfo>) => {
 		return (
 			<VSCodeDropdown
@@ -135,8 +127,45 @@ const ApiOptions = ({ showModelOptions, apiErrorMessage, modelIdErrorMessage }: 
 					<VSCodeOption value="openai">OpenAI Compatible</VSCodeOption>
 					<VSCodeOption value="lmstudio">LM Studio</VSCodeOption>
 					<VSCodeOption value="ollama">Ollama</VSCodeOption>
+					<VSCodeOption value="custom">Custom API</VSCodeOption>
 				</VSCodeDropdown>
 			</div>
+
+			{selectedProvider === "custom" && (
+				<div>
+					<VSCodeTextField
+						value={apiConfiguration?.customApiKey || ""}
+						style={{ width: "100%" }}
+						type="password"
+						onInput={handleInputChange("customApiKey")}
+						placeholder="Enter API Key...">
+						<span style={{ fontWeight: 500 }}>Custom API Key</span>
+					</VSCodeTextField>
+					<VSCodeTextField
+						value={apiConfiguration?.customApiSecret || ""}
+						style={{ width: "100%" }}
+						type="password"
+						onInput={handleInputChange("customApiSecret")}
+						placeholder="Enter API Secret...">
+						<span style={{ fontWeight: 500 }}>Custom API Secret</span>
+					</VSCodeTextField>
+					<VSCodeTextField
+						value={apiConfiguration?.customModelId || ""}
+						style={{ width: "100%" }}
+						onInput={handleInputChange("customModelId")}
+						placeholder="Enter Model ID...">
+						<span style={{ fontWeight: 500 }}>Model ID</span>
+					</VSCodeTextField>
+					<p
+						style={{
+							fontSize: "12px",
+							marginTop: 3,
+							color: "var(--vscode-descriptionForeground)",
+						}}>
+						This provider requires both an API key and secret for authentication. These credentials are stored locally and only used to make API requests from this extension.
+					</p>
+				</div>
+			)}
 
 			{selectedProvider === "anthropic" && (
 				<div>
@@ -619,6 +648,7 @@ const ApiOptions = ({ showModelOptions, apiErrorMessage, modelIdErrorMessage }: 
 				selectedProvider !== "openai" &&
 				selectedProvider !== "ollama" &&
 				selectedProvider !== "lmstudio" &&
+				selectedProvider !== "custom" &&
 				showModelOptions && (
 					<>
 						<div className="dropdown-container">
@@ -839,6 +869,21 @@ export function normalizeApiConfiguration(apiConfiguration?: ApiConfiguration) {
 				selectedProvider: provider,
 				selectedModelId: apiConfiguration?.lmStudioModelId || "",
 				selectedModelInfo: openAiModelInfoSaneDefaults,
+			}
+		case "custom":
+			return {
+				selectedProvider: provider,
+				selectedModelId: apiConfiguration?.customModelId || "",
+				selectedModelInfo: {
+					maxTokens: 4096,
+					contextWindow: 16384,
+					supportsImages: false,
+					supportsComputerUse: true,
+					supportsPromptCache: true,
+					inputPrice: 0.5,
+					outputPrice: 1.5,
+					description: "Custom API model with authentication"
+				}
 			}
 		default:
 			return getProviderData(anthropicModels, anthropicDefaultModelId)

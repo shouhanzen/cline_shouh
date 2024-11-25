@@ -8,6 +8,7 @@ export type ApiProvider =
 	| "lmstudio"
 	| "gemini"
 	| "openai-native"
+	| "custom" // Added new provider
 
 export interface ApiHandlerOptions {
 	apiModelId?: string
@@ -33,6 +34,10 @@ export interface ApiHandlerOptions {
 	geminiApiKey?: string
 	openAiNativeApiKey?: string
 	azureApiVersion?: string
+	// Added new custom API options
+	customApiKey?: string
+	customApiSecret?: string
+	customModelId?: string
 }
 
 export type ApiConfiguration = ApiHandlerOptions & {
@@ -55,7 +60,6 @@ export interface ModelInfo {
 }
 
 // Anthropic
-// https://docs.anthropic.com/en/docs/about-claude/models
 export type AnthropicModelId = keyof typeof anthropicModels
 export const anthropicDefaultModelId: AnthropicModelId = "claude-3-5-sonnet-20241022"
 export const anthropicModels = {
@@ -103,7 +107,6 @@ export const anthropicModels = {
 } as const satisfies Record<string, ModelInfo> // as const assertion makes the object deeply readonly
 
 // AWS Bedrock
-// https://docs.aws.amazon.com/bedrock/latest/userguide/conversation-inference.html
 export type BedrockModelId = keyof typeof bedrockModels
 export const bedrockDefaultModelId: BedrockModelId = "anthropic.claude-3-5-sonnet-20241022-v2:0"
 export const bedrockModels = {
@@ -176,7 +179,6 @@ export const openRouterDefaultModelInfo: ModelInfo = {
 }
 
 // Vertex AI
-// https://cloud.google.com/vertex-ai/generative-ai/docs/partner-models/use-claude
 export type VertexModelId = keyof typeof vertexModels
 export const vertexDefaultModelId: VertexModelId = "claude-3-5-sonnet-v2@20241022"
 export const vertexModels = {
@@ -233,7 +235,6 @@ export const openAiModelInfoSaneDefaults: ModelInfo = {
 }
 
 // Gemini
-// https://ai.google.dev/gemini-api/docs/models/gemini
 export type GeminiModelId = keyof typeof geminiModels
 export const geminiDefaultModelId: GeminiModelId = "gemini-1.5-flash-002"
 export const geminiModels = {
@@ -280,11 +281,9 @@ export const geminiModels = {
 } as const satisfies Record<string, ModelInfo>
 
 // OpenAI Native
-// https://openai.com/api/pricing/
 export type OpenAiNativeModelId = keyof typeof openAiNativeModels
 export const openAiNativeDefaultModelId: OpenAiNativeModelId = "gpt-4o"
 export const openAiNativeModels = {
-	// don't support tool use yet
 	"o1-preview": {
 		maxTokens: 32_768,
 		contextWindow: 128_000,
@@ -320,6 +319,4 @@ export const openAiNativeModels = {
 } as const satisfies Record<string, ModelInfo>
 
 // Azure OpenAI
-// https://learn.microsoft.com/en-us/azure/ai-services/openai/api-version-deprecation
-// https://learn.microsoft.com/en-us/azure/ai-services/openai/reference#api-specs
 export const azureOpenAiDefaultApiVersion = "2024-08-01-preview"
